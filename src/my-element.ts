@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state, property } from "lit/decorators.js";
 
-// Interfaz para el Pokémon
+// Interfaz para el Pokemon
 interface IPokemon {
   id?: number;
   name?: string;
