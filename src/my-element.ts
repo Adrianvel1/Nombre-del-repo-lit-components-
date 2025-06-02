@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import "./pokemon"; // Importando el archivo de Pokémon
+import "./pokemon";
 
 @customElement("login-form")
 export class LoginForm extends LitElement {
