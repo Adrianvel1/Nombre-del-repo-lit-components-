@@ -1,4 +1,5 @@
 import { LitElement, html, css } from "lit";
+
 import { customElement, state, property } from "lit/decorators.js";
 
 // Interfaz para el Pokemon
