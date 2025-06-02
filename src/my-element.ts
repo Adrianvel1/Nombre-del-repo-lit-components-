@@ -1,24 +1,130 @@
 import { LitElement, html, css } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { customElement, state, property } from "lit/decorators.js";
 
+// Interfaz para el Pokémon
+interface IPokemon {
+  id?: number;
+  name?: string;
+  types?: { type: { name: string } }[];
+  abilities?: { ability: { name: string } }[];
+}
+
+// Componente de información del Pokémon
+@customElement("my-element")
+class MyElements extends LitElement {
+  @property() pokemon: IPokemon = {};
+  @property() username = "";
+
+  //API pokeApi
+  private userPokemonMap: Record<string, string> = {
+    charmeleon: "https://pokeapi.co/api/v2/pokemon/5",
+    bulbasaur: "https://pokeapi.co/api/v2/pokemon/bulbasaur",
+    squirtle: "https://pokeapi.co/api/v2/pokemon/squirtle",
+    pikachu: "https://pokeapi.co/api/v2/pokemon/pikachu",
+  };
+
+  async getPokemon() {
+    try {
+      if (this.username && this.userPokemonMap[this.username]) {
+        const response = await fetch(this.userPokemonMap[this.username]);
+        const result = await response.json();
+        this.pokemon = {
+          id: result.id,
+          name: result.name,
+          types: result.types,
+          abilities: result.abilities.slice(0, 2),
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching Pokémon data:", error);
+    }
+  }
+
+  constructor() {
+    super();
+  }
+
+  updated(changedProperties: Map<string, any>) {
+    if (changedProperties.has("username")) {
+      this.getPokemon();
+    }
+  }
+
+  static styles = css`
+    .container-pokemon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(
+        nulldeg,
+        rgba(255, 228, 212, 1) 0%,
+        rgba(255, 215, 245, 1) 58%,
+        rgba(255, 255, 255, 1) 100%
+      );
+      margin-bottom: 1px;
+    }
+  `;
+  /* por cada inicio tendremos atributos especificos para cada uno en
+      pantalla */
+  render() {
+    return html`
+      <div class="container-pokemon">
+        ${this.pokemon.name
+          ? html`
+              <div class="imagenPokemon">
+                <img
+                  src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${this
+                    .pokemon.id}.svg"
+                  alt="imagen pokemon"
+                />
+              </div>
+              <p><strong>ID:</strong> ${this.pokemon.id}</p>
+              <p><strong>Nombre:</strong> ${this.pokemon.name}</p>
+              <p>
+                <strong>Clase:</strong> ${this.pokemon.types
+                  ?.map((t) => t.type.name)
+                  .join(", ")}
+              </p>
+              <p>
+                <strong>Habilidades:</strong> ${this.pokemon.abilities
+                  ?.map((a) => a.ability.name)
+                  .join(", ")}
+              </p>
+            `
+          : html`<p>Cargando datos...</p>`}
+      </div>
+    `;
+  }
+}
+
+// Componente de login con múltiples usuarios
 @customElement("login-form")
-export class LoginForm extends LitElement {
+class LoginForm extends LitElement {
   @state() private username = "";
   @state() private password = "";
   @state() private error = "";
   @state() private isLoggedIn = false;
+
+  //usuarios correctos
+  private users: Record<string, string> = {
+    charmeleon: "1234",
+    bulbasaur: "5678",
+    squirtle: "91011",
+    pikachu: "1213",
+  };
 
   static styles = css`
     :host {
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       height: 100vh;
       background: linear-gradient(to right, rgb(205, 0, 75), rgb(244, 155, 12));
     }
     .container {
       background: rgba(255, 248, 253, 0.84);
-      padding: 3rem;
+      padding: 4rem;
       border-radius: 30px;
       box-shadow: 0 10px 50px rgba(49, 6, 34, 0.43);
       width: 50%;
@@ -26,35 +132,20 @@ export class LoginForm extends LitElement {
     }
     h2 {
       font-family: "Playwrite HU", cursive;
-      text-align: center;
-      margin-bottom: 2rem;
     }
-    input {
-      width: 100%;
-      padding: 0.75rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
+    input,
     button {
-      width: 100%;
-      padding: 0.85rem;
-      background-color: rgb(197, 14, 66);
-      color: white;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      margin-top: 1rem;
+      width: 80%;
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      margin-bottom: 10px;
+    }
+    .bienvenida {
+      font-family: "Playwrite HU", cursive;
     }
     .error {
       color: red;
       font-size: 1rem;
-      margin-top: 0.4rem;
-    }
-    .welcome {
-      text-align: center;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
     }
   `;
 
@@ -64,7 +155,6 @@ export class LoginForm extends LitElement {
     if (savedUser) {
       this.username = savedUser;
       this.isLoggedIn = true;
-      console.log(`Usuario recuperado de localStorage: ${savedUser}`);
     }
   }
 
@@ -75,21 +165,16 @@ export class LoginForm extends LitElement {
   }
 
   private handleLogin() {
-    const validUser = "admin";
-    const validPassword = "1234";
-
     if (!this.username || !this.password) {
       this.error = "Todos los campos son obligatorios";
       return;
     }
 
-    if (this.username === validUser && this.password === validPassword) {
+    if (this.users[this.username] === this.password) {
       this.error = "";
       localStorage.setItem("username", this.username);
       this.isLoggedIn = true;
       this.password = "";
-      console.log(`Usuario guardado en localStorage: ${this.username}`);
-      alert(`Bienvenido ${this.username}!`);
     } else {
       this.error = "Usuario o contraseña incorrectos";
     }
@@ -97,10 +182,8 @@ export class LoginForm extends LitElement {
 
   private handleLogout() {
     localStorage.removeItem("username");
-    console.log("Usuario eliminado de localStorage.");
     this.username = "";
     this.password = "";
-    this.error = "";
     this.isLoggedIn = false;
   }
 
@@ -109,7 +192,8 @@ export class LoginForm extends LitElement {
       <div class="container">
         ${this.isLoggedIn
           ? html`
-              <div class="welcome">¡Bienvenido, ${this.username}!</div>
+              <p class="bienvenida">¡Bienvenido, ${this.username}!</p>
+              <my-element .username=${this.username}></my-element>
               <button @click=${this.handleLogout}>Cerrar sesión</button>
             `
           : html`
